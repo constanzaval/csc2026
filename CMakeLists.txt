@@ -16,12 +16,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # ============================================================================
-# Compiler warnings
+# Compiler warnings (applied to project targets only, not dependencies)
 # ============================================================================
 if(MSVC)
-  add_compile_options(/W4 /permissive-)
+  set(CSC2026_WARNINGS /W4 /permissive-)
 else()
-  add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion)
+  set(CSC2026_WARNINGS -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion)
 endif()
 
 # ============================================================================
@@ -94,6 +94,7 @@ add_library(csc2026
 )
 
 target_include_directories(csc2026 PUBLIC include)
+target_compile_options(csc2026 PRIVATE ${CSC2026_WARNINGS})
 
 if(ENABLE_OPENMP AND OpenMP_CXX_FOUND)
   target_link_libraries(csc2026 PUBLIC OpenMP::OpenMP_CXX)
@@ -104,9 +105,11 @@ endif()
 # ============================================================================
 add_executable(analyze src/main.cpp)
 target_link_libraries(analyze PRIVATE csc2026)
+target_compile_options(analyze PRIVATE ${CSC2026_WARNINGS})
 
 add_executable(event_processor src/event_processor_main.cpp)
 target_link_libraries(event_processor PRIVATE csc2026)
+target_compile_options(event_processor PRIVATE ${CSC2026_WARNINGS})
 
 # ============================================================================
 # Tests
@@ -114,14 +117,17 @@ target_link_libraries(event_processor PRIVATE csc2026)
 if(BUILD_TESTS)
   add_executable(test_track_reconstructor tests/test_track_reconstructor.cpp)
   target_link_libraries(test_track_reconstructor PRIVATE csc2026 Catch2::Catch2WithMain)
+  target_compile_options(test_track_reconstructor PRIVATE ${CSC2026_WARNINGS})
   add_test(NAME track_reconstructor COMMAND test_track_reconstructor)
 
   add_executable(test_event_processor tests/test_event_processor.cpp)
   target_link_libraries(test_event_processor PRIVATE csc2026 Catch2::Catch2WithMain)
+  target_compile_options(test_event_processor PRIVATE ${CSC2026_WARNINGS})
   add_test(NAME event_processor COMMAND test_event_processor)
 
   add_executable(test_particle tests/test_particle.cpp)
   target_link_libraries(test_particle PRIVATE csc2026 Catch2::Catch2WithMain)
+  target_compile_options(test_particle PRIVATE ${CSC2026_WARNINGS})
   add_test(NAME particle COMMAND test_particle)
 endif()
 
@@ -134,5 +140,5 @@ if(BUILD_BENCHMARKS)
     benchmarks/bench_particle.cpp
   )
   target_link_libraries(benchmarks PRIVATE csc2026 benchmark::benchmark)
+  target_compile_options(benchmarks PRIVATE ${CSC2026_WARNINGS})
 endif()
-
